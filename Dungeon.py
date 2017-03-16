@@ -6,9 +6,7 @@ class Dungeon(object):
     def __init__(self, dimension):
         self.dimension = dimension
         self.cell = [[Entity(EMPTY) for x in range(dimension)] for y in range(dimension)]
-        self.agent = Agent(dimension)
-        self.x_agent = 1
-        self.y_agent = 1
+        self.agent = Agent(1, 1, self)
         self.reset(dimension)
 
     def reset(self, dimension):
@@ -23,11 +21,12 @@ class Dungeon(object):
 
         self.cell[randint(1, dimension-2)][randint(1, dimension-2)].type = EXIT
 
-        self.x_agent = randint(1, dimension - 2)
-        self.y_agent = randint(1, dimension - 2)
-        while self.cell[self.x_agent][self.y_agent].type == EXIT:
-            self.x_agent = randint(1, dimension - 2)
-            self.y_agent = randint(1, dimension - 2)
+        self.agent.x = randint(1, dimension - 2)
+        self.agent.y = randint(1, dimension - 2)
+        while self.cell[self.agent.x][self.agent.y].type == EXIT:
+            self.agent.x = randint(1, dimension - 2)
+            self.agent.y = randint(1, dimension - 2)
+        self.agent.reset()
 
     def update(self):
         self.dimension += 1

@@ -45,7 +45,7 @@ class View(object):
 
         for y in range(self.dungeon.dimension):
             for x in range(self.dungeon.dimension):
-                if (self.dungeon.x_agent == x) and (self.dungeon.y_agent == y):
+                if (self.dungeon.agent.x == x) and (self.dungeon.agent.y == y):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
                 else:
@@ -73,5 +73,5 @@ class View(object):
         self.sprite[TRASH][1] = PhotoImage(file='sprites/trash-ex.png')
         self.sprite[TRASH][0] = PhotoImage(file='sprites/trash-un.png')
         self.sprite[DEADMONSTER][1] = PhotoImage(file='sprites/monsterdead-ex.png')
-        # self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.png')
+        self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.png')
         self.sprite[HERO][1] = PhotoImage(file='sprites/hero.png')
