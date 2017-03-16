@@ -45,12 +45,18 @@ class View(object):
 
         for y in range(self.dungeon.dimension):
             for x in range(self.dungeon.dimension):
+                if self.dungeon.agent.cell[x][y].type >= 0:
+                    explored = 1
+                else:
+                    explored = 0
                 if (self.dungeon.agent.x == x) and (self.dungeon.agent.y == y):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
+                    print(self.dungeon.agent.x)
+                    print(self.dungeon.agent.y)
                 else:
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                                     image=self.sprite[self.dungeon.cell[x][y].type][0], anchor = 'nw')
+                                                     image=self.sprite[self.dungeon.cell[x][y].type][explored], anchor='nw')
         # self.root.update()
 
     def next_step(self):
@@ -72,6 +78,8 @@ class View(object):
         self.sprite[TRAP][0] = PhotoImage(file='sprites/trap-un.gif')
         self.sprite[TRASH][1] = PhotoImage(file='sprites/trash-ex.gif')
         self.sprite[TRASH][0] = PhotoImage(file='sprites/trash-un.gif')
+        self.sprite[BONES_TRASH][1] = PhotoImage(file='sprites/bones-un.gif')
+        self.sprite[BONES_TRASH][0] = PhotoImage(file='sprites/bones-un.gif')
         self.sprite[DEADMONSTER][1] = PhotoImage(file='sprites/monsterdead-ex.gif')
         self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.gif')
         self.sprite[HERO][1] = PhotoImage(file='sprites/hero.gif')
