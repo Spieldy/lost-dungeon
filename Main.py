@@ -10,4 +10,4 @@ while True:
     frame_count += 1
     print(frame_count)
     view.render()
-    time.sleep(0.05)
+    time.sleep(1)

@@ -2,6 +2,10 @@ from Entity import *
 from tkinter import *
 
 TILE_SIZE = 64
+WHITE = '#F4F1EB'
+GREEN = '#2D9B7F'
+RED = '#FE5B6E'
+BLACK = '#2D2005'
 
 
 class View(object):
@@ -10,8 +14,8 @@ class View(object):
         self.dungeon = dungeon
         self.root = Tk()
         self.root.wm_title('Lost Dungeon')
-        size = self.dungeon.dimension * TILE_SIZE
-        self.canvas = Canvas(self.root, width=size, height=size, background='#F4F1EB')
+        size = self.dungeon.dimension * TILE_SIZE - 2  # No idea why -2 but it removes a 2px wide border
+        self.canvas = Canvas(self.root, width=size, height=size, background=GREEN)
         self.canvas.pack()
 
         self.sprite = [PhotoImage for x in range(9)]
@@ -24,5 +28,10 @@ class View(object):
         self.canvas.delete('all')
         for y in range(self.dungeon.dimension):
             for x in range(self.dungeon.dimension):
-                self.canvas.create_image(x*TILE_SIZE, y*TILE_SIZE, image=self.sprite[self.dungeon.cell[x][y].type], anchor = 'nw')
+                if (self.dungeon.x_agent == x) and (self.dungeon.y_agent == y):
+                    self.canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                             image=self.sprite[HERO], anchor='nw')
+                else:
+                    self.canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                             image=self.sprite[self.dungeon.cell[x][y].type], anchor = 'nw')
         self.root.update()
