@@ -15,6 +15,8 @@ class Dungeon(object):
         self.dimension = dimension
         self.cell = [[Entity(EMPTY) for x in range(dimension)] for y in range(dimension)]
 
+
+        # Create WALL
         for i in range(self.dimension):
             self.cell[i][0].type = WALL
             self.cell[i][self.dimension-1].type = WALL
