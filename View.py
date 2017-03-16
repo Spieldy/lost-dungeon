@@ -52,11 +52,9 @@ class View(object):
                 if (self.dungeon.agent.x == x) and (self.dungeon.agent.y == y):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
-                    print(self.dungeon.agent.x)
-                    print(self.dungeon.agent.y)
                 else:
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                                     image=self.sprite[self.dungeon.cell[x][y].type][explored], anchor='nw')
+                                                     image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
         # self.root.update()
 
     def next_step(self):

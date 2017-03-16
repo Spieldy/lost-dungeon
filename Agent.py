@@ -8,19 +8,48 @@ class Agent(object):
         self.x = x
         self.y = y
         self.dungeon = dungeon
-        self.cell = [[Cell(x, y) for x in range(dungeon.dimension)] for y in range(dungeon.dimension)]
+        self.cell = [[Cell(x, y) for y in range(dungeon.dimension)] for x in range(dungeon.dimension)]
         self.frontier = []
 
     def update_knowledge(self):
-        cell_type = self.dungeon.cell[self.x][self.y].type
-        self.cell[self.x][self.y].type = cell_type
-        for cell in self.adjacent_cells():
+        current_cell = self.cell[self.x][self.y]
+        cell_type = self.dungeon.board[self.x][self.y].type
+        current_cell.type = cell_type  # Current cell is now explored
+        if current_cell in self.frontier:
+            self.frontier.remove(current_cell)
+        for adj_cell in self.adjacent_cells():
+            if self.dungeon.board[adj_cell.x][adj_cell.y].type == WALL:
+                self.cell[adj_cell.x][adj_cell.y].type = WALL
+            if (adj_cell.type == UNKNOWN) and (adj_cell not in self.frontier):
+                self.frontier.append(adj_cell)
             if cell_type == EMPTY:
-                cell.monster_probability = 0
-                cell.trap_probability = 0
+                adj_cell.monster_probability = 0
+                adj_cell.trap_probability = 0
+        print(self.frontier.__len__())
+
+    def move_right(self):
+        if self.dungeon.board[self.x + 1][self.y].type != WALL:
+            self.x += 1
+            self.update_knowledge()
+
+    def move_left(self):
+        if self.dungeon.board[self.x - 1][self.y].type != WALL:
+            self.x -= 1
+            self.update_knowledge()
+
+    def move_down(self):
+        if self.dungeon.board[self.x][self.y + 1].type != WALL:
+            self.y += 1
+            self.update_knowledge()
+
+    def move_up(self):
+        if self.dungeon.board[self.x][self.y - 1].type != WALL:
+            self.y -= 1
+            self.update_knowledge()
 
     def reset(self):
         self.frontier.clear()
+        self.update_knowledge()
 
     def adjacent_cells(self):
         adjacent_cells = list()
