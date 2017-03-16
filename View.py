@@ -14,24 +14,64 @@ class View(object):
         self.dungeon = dungeon
         self.root = Tk()
         self.root.wm_title('Lost Dungeon')
-        size = self.dungeon.dimension * TILE_SIZE - 2  # No idea why -2 but it removes a 2px wide border
-        self.canvas = Canvas(self.root, width=size, height=size, background=GREEN)
-        self.canvas.pack()
+        self.dimension = self.dungeon.dimension
+        size = self.dimension * TILE_SIZE
 
-        self.sprite = [PhotoImage for x in range(9)]
-        self.sprite[WALL] = PhotoImage(file='sprites/wall-ex.png')
-        self.sprite[HERO] = PhotoImage(file='sprites/hero.png')
-        self.sprite[EMPTY] = PhotoImage(file='sprites/ground-ex.png')
-        self.sprite[EXIT] = PhotoImage(file='sprites/exit-ex.png')
+        # UI
+        self.ui = Frame(self.root, background=GREEN)
+        self.ui.pack(fill=BOTH)
+        self.next = PhotoImage(file='sprites/next.png')
+        self.next_button = Button(self.ui, image=self.next, command=self.next_step, bd=0, highlightthickness=0)
+        self.next_button.grid(row=0, column=0)
+        self.info = Label(self.ui, text='Score:', padx=10, bg=GREEN)
+        self.info.grid(row=0, column=1, columnspan=2)
+
+        # Dungeon
+        self.dungeon_canvas = Canvas(self.root, width=size, height=size, background=WHITE, highlightthickness=0)
+        self.dungeon_canvas.pack()
+
+        # Contains all the sprites, with second dimension containing explored version of the sprite
+        self.sprite = [[PhotoImage() for x in range(2)] for y in range(ENTITY_COUNT)]
+        self.load_sprites()
 
     def render(self):
-        self.canvas.delete('all')
+        self.dungeon_canvas.delete('all')
+
+        if self.dimension != self.dungeon.dimension:  # Dungeon has been generated to a new size
+            self.dimension = self.dungeon.dimension
+            size = self.dimension * TILE_SIZE
+            self.dungeon_canvas.config(width=size, height=size)
+            self.dungeon_canvas.pack()
+
         for y in range(self.dungeon.dimension):
             for x in range(self.dungeon.dimension):
                 if (self.dungeon.x_agent == x) and (self.dungeon.y_agent == y):
-                    self.canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                             image=self.sprite[HERO], anchor='nw')
+                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                     image=self.sprite[HERO][1], anchor='nw')
                 else:
-                    self.canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                             image=self.sprite[self.dungeon.cell[x][y].type], anchor = 'nw')
-        self.root.update()
+                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                     image=self.sprite[self.dungeon.cell[x][y].type][0], anchor = 'nw')
+        # self.root.update()
+
+    def next_step(self):
+        self.dungeon.update()
+        self.render()
+
+    def load_sprites(self):
+        self.sprite[EMPTY][1] = PhotoImage(file='sprites/ground-ex.png')
+        self.sprite[EMPTY][0] = PhotoImage(file='sprites/ground-un.png')
+        self.sprite[WALL][1] = PhotoImage(file='sprites/wall-ex.png')
+        self.sprite[WALL][0] = PhotoImage(file='sprites/wall-un.png')
+        self.sprite[EXIT][1] = PhotoImage(file='sprites/exit-ex.png')
+        self.sprite[EXIT][0] = PhotoImage(file='sprites/exit-un.png')
+        self.sprite[MONSTER][1] = PhotoImage(file='sprites/monster-ex.png')
+        self.sprite[MONSTER][0] = PhotoImage(file='sprites/monster-un.png')
+        self.sprite[BONES][1] = PhotoImage(file='sprites/bones-ex.png')
+        self.sprite[BONES][0] = PhotoImage(file='sprites/bones-un.png')
+        self.sprite[TRAP][1] = PhotoImage(file='sprites/trap-ex.png')
+        self.sprite[TRAP][0] = PhotoImage(file='sprites/trap-un.png')
+        self.sprite[TRASH][1] = PhotoImage(file='sprites/trash-ex.png')
+        self.sprite[TRASH][0] = PhotoImage(file='sprites/trash-un.png')
+        self.sprite[DEADMONSTER][1] = PhotoImage(file='sprites/monsterdead-ex.png')
+        # self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.png')
+        self.sprite[HERO][1] = PhotoImage(file='sprites/hero.png')
