@@ -48,6 +48,7 @@ class Agent(object):
             self.update_knowledge()
 
     def reset(self):
+        self.cell = [[Cell(x, y) for y in range(self.dungeon.dimension)] for x in range(self.dungeon.dimension)]
         self.frontier.clear()
         self.update_knowledge()
 
