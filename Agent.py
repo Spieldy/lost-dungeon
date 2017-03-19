@@ -25,7 +25,6 @@ class Agent(object):
             if cell_type == EMPTY:
                 adj_cell.monster_probability = 0
                 adj_cell.trap_probability = 0
-        print(self.frontier.__len__())
 
     def move_right(self):
         if self.dungeon.board[self.x + 1][self.y].type != WALL:
