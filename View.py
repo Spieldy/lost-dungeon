@@ -58,7 +58,7 @@ class View(object):
                                                      image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
 
         for cell in self.dungeon.agent.frontier:
-            self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 5, cell.y * TILE_SIZE + TILE_SIZE / 2,
+            self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 8, cell.y * TILE_SIZE + TILE_SIZE / 2,
                                             text='mo {pm}\ntr {pt}\nok {pc}'.format(pm=cell.monster_probability, pt=cell.trap_probability,
                                                                                   pc=1-(cell.monster_probability+cell.trap_probability)),
                                             font=info_font, fill=RED, anchor=W)
