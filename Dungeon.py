@@ -31,10 +31,14 @@ class Dungeon(object):
         # Random start position of the HERO == Agent
         self.agent.x = randint(1, dimension - 2)
         self.agent.y = randint(1, dimension - 2)
+        self.agent.respawn_x = self.agent.x
+        self.agent.respawn_y = self.agent.y
 
         while self.board[self.agent.x][self.agent.y].type == EXIT:
             self.agent.x = randint(1, dimension - 2)
             self.agent.y = randint(1, dimension - 2)
+            self.agent.respawn_x = self.agent.x
+            self.agent.respawn_y = self.agent.y
 
         # Populate
         for x in range(self.dimension):
