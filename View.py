@@ -15,6 +15,14 @@ class View(object):
         self.dungeon = dungeon
         self.root = Tk()
         self.root.wm_title('Lost Dungeon')
+        self.root.bind('<Left>', self.left_key)
+        self.root.bind('<Right>', self.right_key)
+        self.root.bind('<Up>', self.up_key)
+        self.root.bind('<Down>', self.down_key)
+        self.root.bind('<space>', self.space_key)
+
+
+
         self.dimension = self.dungeon.dimension
         size = self.dimension * TILE_SIZE
 
@@ -63,9 +71,30 @@ class View(object):
                                                                                   pc=1-(cell.monster_probability+cell.trap_probability)),
                                             font=info_font, fill=RED, anchor=W)
 
+
+
     def next_step(self):
-        self.dungeon.update()
+        self.dungeon.new_dungeon()
         self.render()
+
+    def left_key(self, event):
+        self.dungeon.agent.move_left()
+        self.render()
+
+    def right_key(self, event):
+        self.dungeon.agent.move_right()
+        self.render()
+
+    def up_key(self, event):
+        self.dungeon.agent.move_up()
+        self.render()
+
+    def down_key(self, event):
+        self.dungeon.agent.move_down()
+        self.render()
+
+    def space_key(self, event):
+        print("Space")
 
     def load_sprites(self):
         self.sprite[EMPTY][1] = PhotoImage(file='sprites/ground-ex.gif')
