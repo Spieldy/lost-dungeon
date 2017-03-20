@@ -7,6 +7,7 @@ EMPTY, WALL, EXIT, MONSTER, BONES, TRAP, TRASH, BONES_TRASH, DEADMONSTER, HERO =
 class Entity(object):
 
     def __init__(self):
+        self.type = EMPTY
         pass
 
     def __init__(self, entity_type):

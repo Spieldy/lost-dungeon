@@ -3,7 +3,8 @@ from Agent import *
 from random import randint
 
 # Global variables defining generation probabilities
-INSERT_PROBABILITY = 2
+INSERT_PROBABILITY = 5
+
 
 class Dungeon(object):
     def __init__(self, dimension):
@@ -34,7 +35,6 @@ class Dungeon(object):
         while self.board[self.agent.x][self.agent.y].type == EXIT:
             self.agent.x = randint(1, dimension - 2)
             self.agent.y = randint(1, dimension - 2)
-        self.agent.reset()
 
         # Populate
         for x in range(self.dimension):
@@ -76,6 +76,8 @@ class Dungeon(object):
                         self.board[event_x][event_y - 1].type = BONES
                     if event_y < self.dimension - 2 and self.board[event_x][event_y + 1].type != EXIT and self.board[event_x][event_y + 1].type != TRAP:
                         self.board[event_x][event_y + 1].type = BONES
+
+        self.agent.reset()
 
     def update(self):
         self.agent.move_right()
