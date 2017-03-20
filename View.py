@@ -6,6 +6,7 @@ WHITE = '#F4F1EB'
 GREEN = '#2D9B7F'
 RED = '#FE5B6E'
 BLACK = '#2D2005'
+info_font = ('FixedSys', 9)
 
 
 class View(object):
@@ -23,7 +24,7 @@ class View(object):
         self.next = PhotoImage(file='sprites/next.gif')
         self.next_button = Button(self.ui, image=self.next, command=self.next_step, bd=0, highlightthickness=0)
         self.next_button.grid(row=0, column=0)
-        self.info = Label(self.ui, text='Score:', padx=10, bg=GREEN)
+        self.info = Label(self.ui, text='Score:', padx=10, bg=GREEN, font=info_font)
         self.info.grid(row=0, column=1, columnspan=2)
 
         # Dungeon
@@ -55,7 +56,12 @@ class View(object):
                 else:
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
-        # self.root.update()
+
+        for cell in self.dungeon.agent.frontier:
+            self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 8, cell.y * TILE_SIZE + TILE_SIZE / 2,
+                                            text='mo {pm}\ntr {pt}\nok {pc}'.format(pm=cell.monster_probability, pt=cell.trap_probability,
+                                                                                  pc=1-(cell.monster_probability+cell.trap_probability)),
+                                            font=info_font, fill=RED, anchor=W)
 
     def next_step(self):
         self.dungeon.update()

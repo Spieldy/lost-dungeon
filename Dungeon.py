@@ -5,6 +5,7 @@ from random import randint
 # Global variables defining generation probabilities
 INSERT_PROBABILITY = 5
 
+
 class Dungeon(object):
     def __init__(self, dimension):
         self.dimension = dimension
@@ -34,7 +35,6 @@ class Dungeon(object):
         while self.board[self.agent.x][self.agent.y].type == EXIT:
             self.agent.x = randint(1, dimension - 2)
             self.agent.y = randint(1, dimension - 2)
-        self.agent.reset()
 
         # Populate
         for x in range(self.dimension):
@@ -49,13 +49,13 @@ class Dungeon(object):
                         event_y = randint(1, self.dimension - 2)
                     self.board[event_x][event_y].type = TRAP
                     # Generate TRASH around the TRAP
-                    if event_x > 1 and self.board[event_x-1][event_y].type != EXIT and self.board[event_x-1][event_y].type != MONSTER:
+                    if event_x > 1 and self.board[event_x-1][event_y].type != EXIT and self.board[event_x-1][event_y].type != MONSTER and self.board[event_x-1][event_y].type != TRAP:
                         self.board[event_x-1][event_y].type = TRASH
-                    if event_x < self.dimension - 2 and self.board[event_x+1][event_y].type != EXIT and self.board[event_x+1][event_y].type != MONSTER:
+                    if event_x < self.dimension - 2 and self.board[event_x+1][event_y].type != EXIT and self.board[event_x+1][event_y].type != MONSTER and self.board[event_x+1][event_y].type != TRAP:
                         self.board[event_x+1][event_y].type = TRASH
-                    if event_y > 1 and self.board[event_x][event_y-1].type != EXIT and self.board[event_x][event_y-1].type != MONSTER:
+                    if event_y > 1 and self.board[event_x][event_y-1].type != EXIT and self.board[event_x][event_y-1].type != MONSTER and self.board[event_x][event_y-1].type != TRAP:
                         self.board[event_x][event_y-1].type = TRASH
-                    if event_y < self.dimension - 2 and self.board[event_x][event_y+1].type != EXIT and self.board[event_x][event_y+1].type != MONSTER:
+                    if event_y < self.dimension - 2 and self.board[event_x][event_y+1].type != EXIT and self.board[event_x][event_y+1].type != MONSTER and self.board[event_x][event_y+1].type != TRAP:
                         self.board[event_x][event_y+1].type = TRASH
 
                 # MONSTER
@@ -68,17 +68,18 @@ class Dungeon(object):
                         event_y = randint(1, self.dimension - 2)
                     self.board[event_x][event_y].type = MONSTER
                     # Generate BONES around the MONSTER
-                    if event_x > 1 and self.board[event_x - 1][event_y].type != EXIT and self.board[event_x - 1][event_y].type != TRAP:
+                    if event_x > 1 and self.board[event_x - 1][event_y].type != EXIT and self.board[event_x - 1][event_y].type != TRAP and self.board[event_x - 1][event_y].type != MONSTER:
                         self.board[event_x - 1][event_y].type = BONES
-                    if event_x < self.dimension - 2 and self.board[event_x + 1][event_y].type != EXIT and self.board[event_x + 1][event_y].type != TRAP:
+                    if event_x < self.dimension - 2 and self.board[event_x + 1][event_y].type != EXIT and self.board[event_x + 1][event_y].type != TRAP and self.board[event_x + 1][event_y].type != MONSTER:
                         self.board[event_x + 1][event_y].type = BONES
-                    if event_y > 1 and self.board[event_x][event_y - 1].type != EXIT and self.board[event_x][event_y - 1].type != TRAP:
+                    if event_y > 1 and self.board[event_x][event_y - 1].type != EXIT and self.board[event_x][event_y - 1].type != TRAP and self.board[event_x][event_y - 1].type != MONSTER:
                         self.board[event_x][event_y - 1].type = BONES
-                    if event_y < self.dimension - 2 and self.board[event_x][event_y + 1].type != EXIT and self.board[event_x][event_y + 1].type != TRAP:
+                    if event_y < self.dimension - 2 and self.board[event_x][event_y + 1].type != EXIT and self.board[event_x][event_y + 1].type != TRAP and self.board[event_x][event_y + 1].type != MONSTER:
                         self.board[event_x][event_y + 1].type = BONES
 
-
+        self.agent.reset()
 
     def update(self):
-        self.dimension += 1
-        self.reset(self.dimension)
+        self.agent.move_right()
+        # self.dimension += 1
+        # self.reset(self.dimension)
