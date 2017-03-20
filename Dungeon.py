@@ -79,7 +79,7 @@ class Dungeon(object):
 
         self.agent.reset()
 
-    def update(self):
-        self.agent.move_right()
-        # self.dimension += 1
-        # self.reset(self.dimension)
+    def new_dungeon(self):
+        self.dimension += 1
+        self.reset(self.dimension)
+        pass
