@@ -19,7 +19,12 @@ class View(object):
         self.root.bind('<Right>', self.right_key)
         self.root.bind('<Up>', self.up_key)
         self.root.bind('<Down>', self.down_key)
-        self.root.bind('<space>', self.space_key)
+
+        self.root.bind('d', self.shoot_left_key)
+        self.root.bind('g', self.shoot_right_key)
+        self.root.bind('r', self.shoot_up_key)
+        self.root.bind('f', self.shoot_down_key)
+
 
 
 
@@ -93,8 +98,22 @@ class View(object):
         self.dungeon.agent.move_down()
         self.render()
 
-    def space_key(self, event):
-        print("Space")
+    def shoot_left_key(self, event):
+        self.dungeon.agent.shoot_left()
+        self.render()
+
+    def shoot_right_key(self, event):
+        self.dungeon.agent.shoot_right()
+        self.render()
+
+    def shoot_up_key(self, event):
+        self.dungeon.agent.shoot_up()
+        self.render()
+
+    def shoot_down_key(self, event):
+        self.dungeon.agent.shoot_down()
+        self.render()
+
 
     def load_sprites(self):
         self.sprite[EMPTY][1] = PhotoImage(file='sprites/ground-ex.gif')

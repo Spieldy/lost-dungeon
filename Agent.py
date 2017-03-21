@@ -36,6 +36,7 @@ class Agent(object):
             self.dungeon.new_dungeon()
             self.reset()
 
+    # MOVE function()
     def move_right(self):
         if self.dungeon.board[self.x + 1][self.y].type != WALL:
             self.x += 1
@@ -54,6 +55,27 @@ class Agent(object):
     def move_up(self):
         if self.dungeon.board[self.x][self.y - 1].type != WALL:
             self.y -= 1
+            self.update_knowledge()
+
+    # SHOOT function()
+    def shoot_right(self):
+        if self.dungeon.board[self.x + 1][self.y].type == MONSTER:
+            self.dungeon.board[self.x + 1][self.y].type = DEADMONSTER
+            self.update_knowledge()
+
+    def shoot_left(self):
+        if self.dungeon.board[self.x - 1][self.y].type == MONSTER:
+            self.dungeon.board[self.x - 1][self.y].type = DEADMONSTER
+            self.update_knowledge()
+
+    def shoot_down(self):
+        if self.dungeon.board[self.x][self.y + 1].type == MONSTER:
+            self.dungeon.board[self.x][self.y + 1].type = DEADMONSTER
+            self.update_knowledge()
+
+    def shoot_up(self):
+        if self.dungeon.board[self.x][self.y - 1].type == MONSTER:
+            self.dungeon.board[self.x][self.y - 1].type = DEADMONSTER
             self.update_knowledge()
 
     def respawn(self):
