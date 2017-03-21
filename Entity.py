@@ -8,7 +8,11 @@ class Entity(object):
 
     def __init__(self):
         self.type = EMPTY
+        self.subtype = EMPTY
         pass
 
-    def __init__(self, entity_type):
+    def __init__(self, entity_type, entity_subtype):
         self.type = entity_type
+        self.subtype = entity_subtype
+
+
