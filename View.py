@@ -63,6 +63,10 @@ class View(object):
                     explored = 1
                 else:
                     explored = 0
+                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                     image=self.sprite[EMPTY][0],
+                                                     anchor='nw')
+                    continue
                 if (self.dungeon.agent.x == x) and (self.dungeon.agent.y == y):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
