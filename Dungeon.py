@@ -9,13 +9,13 @@ INSERT_PROBABILITY = 5
 class Dungeon(object):
     def __init__(self, dimension):
         self.dimension = dimension
-        self.board = [[Entity(EMPTY) for x in range(dimension)] for y in range(dimension)]
+        self.board = [[Entity(EMPTY, EMPTY) for x in range(dimension)] for y in range(dimension)]
         self.agent = Agent(1, 1, self)
         self.reset(dimension)
 
     def reset(self, dimension):
         self.dimension = dimension
-        self.board = [[Entity(EMPTY) for x in range(dimension)] for y in range(dimension)]
+        self.board = [[Entity(EMPTY, EMPTY) for x in range(dimension)] for y in range(dimension)]
 
 
         # Create WALL
@@ -40,48 +40,81 @@ class Dungeon(object):
             self.agent.respawn_x = self.agent.x
             self.agent.respawn_y = self.agent.y
 
+        self.populate()
+
+        self.agent.reset()
+
+    def populate(self):
         # Populate
         for x in range(self.dimension):
             for y in range(self.dimension):
+
                 # TRAP
                 event_occurred = randint(0, 99)
                 if event_occurred < INSERT_PROBABILITY:
                     event_x = randint(1, self.dimension - 2)
                     event_y = randint(1, self.dimension - 2)
-                    while self.board[event_x][event_y].type == EXIT or (self.agent.x == event_x and self.agent.y == event_y) or self.board[event_x][event_y].type == MONSTER:
+                    while not self.board[event_x][event_y].is_priority() and (
+                            self.agent.x == event_x and self.agent.y == event_y):
                         event_x = randint(1, self.dimension - 2)
                         event_y = randint(1, self.dimension - 2)
                     self.board[event_x][event_y].type = TRAP
+
                     # Generate TRASH around the TRAP
-                    if event_x > 1 and self.board[event_x-1][event_y].type != EXIT and self.board[event_x-1][event_y].type != MONSTER and self.board[event_x-1][event_y].type != TRAP:
-                        self.board[event_x-1][event_y].type = TRASH
-                    if event_x < self.dimension - 2 and self.board[event_x+1][event_y].type != EXIT and self.board[event_x+1][event_y].type != MONSTER and self.board[event_x+1][event_y].type != TRAP:
-                        self.board[event_x+1][event_y].type = TRASH
-                    if event_y > 1 and self.board[event_x][event_y-1].type != EXIT and self.board[event_x][event_y-1].type != MONSTER and self.board[event_x][event_y-1].type != TRAP:
-                        self.board[event_x][event_y-1].type = TRASH
-                    if event_y < self.dimension - 2 and self.board[event_x][event_y+1].type != EXIT and self.board[event_x][event_y+1].type != MONSTER and self.board[event_x][event_y+1].type != TRAP:
-                        self.board[event_x][event_y+1].type = TRASH
+                    if event_x > 1 and not self.board[event_x - 1][event_y].is_priority():
+                        if self.board[event_x - 1][event_y].is_spoiled():
+                            self.board[event_x - 1][event_y].type = BONES_TRASH
+                        else:
+                            self.board[event_x - 1][event_y].type = TRASH
+                    if event_x < self.dimension - 2 and not self.board[event_x + 1][event_y].is_priority():
+                        if self.board[event_x + 1][event_y].is_spoiled():
+                            self.board[event_x + 1][event_y].type = BONES_TRASH
+                        else:
+                            self.board[event_x + 1][event_y].type = TRASH
+                    if event_y > 1 and not self.board[event_x][event_y - 1].is_priority():
+                        if self.board[event_x][event_y - 1].is_spoiled():
+                            self.board[event_x][event_y - 1].type = BONES_TRASH
+                        else:
+                            self.board[event_x][event_y - 1].type = TRASH
+                    if event_y < self.dimension - 2 and not self.board[event_x][event_y + 1].is_priority():
+                        if self.board[event_x][event_y + 1].is_spoiled():
+                            self.board[event_x][event_y + 1].type = BONES_TRASH
+                        else:
+                            self.board[event_x][event_y + 1].type = TRASH
+
 
                 # MONSTER
                 event_occurred = randint(0, 99)
                 if event_occurred < INSERT_PROBABILITY:
                     event_x = randint(1, self.dimension - 2)
                     event_y = randint(1, self.dimension - 2)
-                    while self.board[event_x][event_y].type == EXIT or (self.agent.x == event_x and self.agent.y == event_y) or self.board[event_x][event_y].type == TRAP:
+                    while not self.board[event_x][event_y].is_priority() and (
+                                    self.agent.x == event_x and self.agent.y == event_y):
                         event_x = randint(1, self.dimension - 2)
                         event_y = randint(1, self.dimension - 2)
                     self.board[event_x][event_y].type = MONSTER
-                    # Generate BONES around the MONSTER
-                    if event_x > 1 and self.board[event_x - 1][event_y].type != EXIT and self.board[event_x - 1][event_y].type != TRAP and self.board[event_x - 1][event_y].type != MONSTER:
-                        self.board[event_x - 1][event_y].type = BONES
-                    if event_x < self.dimension - 2 and self.board[event_x + 1][event_y].type != EXIT and self.board[event_x + 1][event_y].type != TRAP and self.board[event_x + 1][event_y].type != MONSTER:
-                        self.board[event_x + 1][event_y].type = BONES
-                    if event_y > 1 and self.board[event_x][event_y - 1].type != EXIT and self.board[event_x][event_y - 1].type != TRAP and self.board[event_x][event_y - 1].type != MONSTER:
-                        self.board[event_x][event_y - 1].type = BONES
-                    if event_y < self.dimension - 2 and self.board[event_x][event_y + 1].type != EXIT and self.board[event_x][event_y + 1].type != TRAP and self.board[event_x][event_y + 1].type != MONSTER:
-                        self.board[event_x][event_y + 1].type = BONES
 
-        self.agent.reset()
+                    # Generate BONES around the MONSTER
+                    if event_x > 1 and not self.board[event_x - 1][event_y].is_priority():
+                        if self.board[event_x - 1][event_y].is_spoiled():
+                            self.board[event_x - 1][event_y].type = BONES_TRASH
+                        else:
+                            self.board[event_x - 1][event_y].type = BONES
+                    if event_x < self.dimension - 2 and not self.board[event_x + 1][event_y].is_priority():
+                        if self.board[event_x + 1][event_y].is_spoiled():
+                            self.board[event_x + 1][event_y].type = BONES_TRASH
+                        else:
+                            self.board[event_x + 1][event_y].type = BONES
+                    if event_y > 1 and not self.board[event_x][event_y - 1].is_priority():
+                        if self.board[event_x][event_y - 1].is_spoiled():
+                            self.board[event_x][event_y - 1].type = BONES_TRASH
+                        else:
+                            self.board[event_x][event_y - 1].type = BONES
+                    if event_y < self.dimension - 2 and not self.board[event_x][event_y + 1].is_priority():
+                        if self.board[event_x][event_y + 1].is_spoiled():
+                            self.board[event_x][event_y + 1].type = BONES_TRASH
+                        else:
+                            self.board[event_x][event_y + 1].type = BONES
 
     def new_dungeon(self):
         self.dimension += 1
