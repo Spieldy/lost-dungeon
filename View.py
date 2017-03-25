@@ -1,17 +1,18 @@
 from Entity import *
 from tkinter import *
 
-TILE_SIZE = 64
+TILE_SIZE = 32
 WHITE = '#F4F1EB'
 GREEN = '#2D9B7F'
 RED = '#FE5B6E'
 BLACK = '#2D2005'
-info_font = ('FixedSys', 9)
+info_font = ('FixedSys', 6)
 
 
 class View(object):
 
     def __init__(self, dungeon):
+        self.manual_mode = False
         self.dungeon = dungeon
         self.root = Tk()
         self.root.wm_title('Lost Dungeon')
@@ -24,9 +25,6 @@ class View(object):
         self.root.bind('g', self.shoot_right_key)
         self.root.bind('r', self.shoot_up_key)
         self.root.bind('f', self.shoot_down_key)
-
-
-
 
         self.dimension = self.dungeon.dimension
         size = self.dimension * TILE_SIZE
@@ -49,6 +47,8 @@ class View(object):
         self.load_sprites()
 
     def render(self):
+        info_text = 'Score: {0}'.format(self.dungeon.agent.score)
+        self.info.config(text=info_text)
         self.dungeon_canvas.delete('all')
 
         if self.dimension != self.dungeon.dimension:  # Dungeon has been generated to a new size
@@ -63,32 +63,38 @@ class View(object):
                     explored = 1
                 else:
                     explored = 0
-                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                                     image=self.sprite[EMPTY][0],
-                                                     anchor='nw')
-                    continue
+                    if self.manual_mode:
+                        if not self.dungeon.board[x][y].type == WALL:
+                            self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                             image=self.sprite[FOG][0],
+                                                             anchor='nw')
+                            continue
 
-                self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                                 image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
+                if not self.dungeon.board[x][y].type == EMPTY:
+                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                     image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
+                else:
+                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                     image=self.sprite[self.dungeon.board[x][y].subtype][explored],
+                                                     anchor='nw')
                 if (self.dungeon.agent.x == x) and (self.dungeon.agent.y == y):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
 
-        for cell in self.dungeon.agent.frontier:
-            pm = cell.monster_probability
-            pt = cell.trap_probability
-            pc = 1 - (cell.monster_probability + cell.trap_probability)
-            cell_info = ''
-            if pm >= 1.0:
-                cell_info += 'MON'
-            if pt >= 1.0:
-                cell_info += 'TRA'
-            if pc >= 1.0:
-                cell_info += 'OK'
-            self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 8, cell.y * TILE_SIZE + TILE_SIZE / 2,
-                                            text=cell_info, font=info_font, fill=RED, anchor=W)
-
-
+        if not self.manual_mode:
+            for cell in self.dungeon.agent.frontier:
+                pm = cell.monster_probability
+                pt = cell.trap_probability
+                pc = 1 - (cell.monster_probability + cell.trap_probability)
+                cell_info = '??'
+                if pm >= 1.0:
+                    cell_info = 'MO'
+                if pt >= 1.0:
+                    cell_info = 'TR'
+                if pc >= 1.0:
+                    cell_info = 'OK'
+                self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 8, cell.y * TILE_SIZE + TILE_SIZE / 2,
+                                                text=cell_info, font=info_font, fill=RED, anchor=W)
 
     def next_step(self):
         self.dungeon.new_dungeon()
@@ -126,7 +132,6 @@ class View(object):
         self.dungeon.agent.shoot_down()
         self.render()
 
-
     def load_sprites(self):
         self.sprite[EMPTY][1] = PhotoImage(file='sprites/ground-ex.gif')
         self.sprite[EMPTY][0] = PhotoImage(file='sprites/ground-un.gif')
@@ -147,3 +152,4 @@ class View(object):
         self.sprite[DEADMONSTER][1] = PhotoImage(file='sprites/monsterdead-ex.gif')
         self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.gif')
         self.sprite[HERO][1] = PhotoImage(file='sprites/hero.gif')
+        self.sprite[FOG][0] = PhotoImage(file='sprites/fog.gif')

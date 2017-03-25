@@ -12,8 +12,10 @@ class Agent(object):
         self.dungeon = dungeon
         self.cell = [[Cell(x, y) for y in range(dungeon.dimension)] for x in range(dungeon.dimension)]
         self.frontier = []
+        self.score = (self.dungeon.dimension - 3) * 10
 
     def update_knowledge(self):
+        # TODO does not update knowledge if he steps on a killing tile
         current_cell = self.cell[self.x][self.y]
         cell_type = self.dungeon.board[self.x][self.y].type
         current_cell.type = cell_type  # Current cell is now explored
@@ -29,59 +31,66 @@ class Agent(object):
                     if (adj_cell.type == UNKNOWN) and (adj_cell not in self.frontier):
                         self.frontier.append(adj_cell)
                     if cell_type == EMPTY:
-                        adj_cell.monster_probability = 0
-                        adj_cell.trap_probability = 0
+                        adj_cell.monster_probability = 0.0
+                        adj_cell.trap_probability = 0.0
         else:
-            print("Exit")
-            self.dungeon.new_dungeon()
-            self.reset()
+            self.score += (self.dungeon.dimension - 2) * 10
+            self.dungeon.reset(self.dungeon.dimension + 1)
 
     # MOVE function()
     def move_right(self):
         if self.dungeon.board[self.x + 1][self.y].type != WALL:
             self.x += 1
+            self.score -= 1
             self.update_knowledge()
 
     def move_left(self):
         if self.dungeon.board[self.x - 1][self.y].type != WALL:
             self.x -= 1
+            self.score -= 1
             self.update_knowledge()
 
     def move_down(self):
         if self.dungeon.board[self.x][self.y + 1].type != WALL:
             self.y += 1
+            self.score -= 1
             self.update_knowledge()
 
     def move_up(self):
         if self.dungeon.board[self.x][self.y - 1].type != WALL:
             self.y -= 1
+            self.score -= 1
             self.update_knowledge()
 
     # SHOOT function()
     def shoot_right(self):
+        self.score -= 10
         if self.dungeon.board[self.x + 1][self.y].type == MONSTER:
             self.dungeon.board[self.x + 1][self.y].type = DEADMONSTER
             self.update_knowledge()
 
     def shoot_left(self):
+        self.score -= 10
         if self.dungeon.board[self.x - 1][self.y].type == MONSTER:
             self.dungeon.board[self.x - 1][self.y].type = DEADMONSTER
             self.update_knowledge()
 
     def shoot_down(self):
+        self.score -= 10
         if self.dungeon.board[self.x][self.y + 1].type == MONSTER:
             self.dungeon.board[self.x][self.y + 1].type = DEADMONSTER
             self.update_knowledge()
 
     def shoot_up(self):
+        self.score -= 10
         if self.dungeon.board[self.x][self.y - 1].type == MONSTER:
             self.dungeon.board[self.x][self.y - 1].type = DEADMONSTER
             self.update_knowledge()
 
     def respawn(self):
+        self.score -= (self.dungeon.dimension - 2) * 10
         self.x = self.respawn_x
         self.y = self.respawn_y
-        self.update_knowledge()
 
     def reset(self):
         self.cell = [[Cell(x, y) for y in range(self.dungeon.dimension)] for x in range(self.dungeon.dimension)]
