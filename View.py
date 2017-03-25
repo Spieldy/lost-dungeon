@@ -67,18 +67,26 @@ class View(object):
                                                      image=self.sprite[EMPTY][0],
                                                      anchor='nw')
                     continue
+
+                self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
+                                                 image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
                 if (self.dungeon.agent.x == x) and (self.dungeon.agent.y == y):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
-                else:
-                    self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
-                                                     image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
 
         for cell in self.dungeon.agent.frontier:
+            pm = cell.monster_probability
+            pt = cell.trap_probability
+            pc = 1 - (cell.monster_probability + cell.trap_probability)
+            cell_info = ''
+            if pm >= 1.0:
+                cell_info += 'MON'
+            if pt >= 1.0:
+                cell_info += 'TRA'
+            if pc >= 1.0:
+                cell_info += 'OK'
             self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 8, cell.y * TILE_SIZE + TILE_SIZE / 2,
-                                            text='mo {pm}\ntr {pt}\nok {pc}'.format(pm=cell.monster_probability, pt=cell.trap_probability,
-                                                                                  pc=1-(cell.monster_probability+cell.trap_probability)),
-                                            font=info_font, fill=RED, anchor=W)
+                                            text=cell_info, font=info_font, fill=RED, anchor=W)
 
 
 
@@ -134,8 +142,8 @@ class View(object):
         self.sprite[TRAP][0] = PhotoImage(file='sprites/trap-un.gif')
         self.sprite[TRASH][1] = PhotoImage(file='sprites/trash-ex.gif')
         self.sprite[TRASH][0] = PhotoImage(file='sprites/trash-un.gif')
-        self.sprite[BONES_TRASH][1] = PhotoImage(file='sprites/bones-un.gif')
-        self.sprite[BONES_TRASH][0] = PhotoImage(file='sprites/bones-un.gif')
+        self.sprite[BONES_TRASH][1] = PhotoImage(file='sprites/trashbones-ex.gif')
+        self.sprite[BONES_TRASH][0] = PhotoImage(file='sprites/trashbones-un.gif')
         self.sprite[DEADMONSTER][1] = PhotoImage(file='sprites/monsterdead-ex.gif')
         self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.gif')
         self.sprite[HERO][1] = PhotoImage(file='sprites/hero.gif')
