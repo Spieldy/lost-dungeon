@@ -17,7 +17,6 @@ class Dungeon(object):
         self.dimension = dimension
         self.board = [[Entity(EMPTY, EMPTY) for x in range(dimension)] for y in range(dimension)]
 
-
         # Create WALL
         for i in range(self.dimension):
             self.board[i][0].type = WALL
@@ -31,20 +30,17 @@ class Dungeon(object):
         # Random start position of the HERO == Agent
         self.agent.x = randint(1, dimension - 2)
         self.agent.y = randint(1, dimension - 2)
-        self.agent.respawn_x = self.agent.x
-        self.agent.respawn_y = self.agent.y
-
         while self.board[self.agent.x][self.agent.y].type == EXIT:
             self.agent.x = randint(1, dimension - 2)
             self.agent.y = randint(1, dimension - 2)
-            self.agent.respawn_x = self.agent.x
-            self.agent.respawn_y = self.agent.y
+
+        self.agent.respawn_x = self.agent.x
+        self.agent.respawn_y = self.agent.y
 
         self.populate()
-        self.agent.reset()
+        self.agent.reset_knowledge()
 
     def populate(self):
-        # Populate
         for x in range(1, self.dimension-1):
             for y in range(1, self.dimension-1):
                 # TRAP

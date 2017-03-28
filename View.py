@@ -1,30 +1,37 @@
 from Entity import *
 from tkinter import *
 
-TILE_SIZE = 32
+SCALE = 3
+MANUAL_MODE = True
+FOG_MODE = False
+INFO_MODE = False
+
+TILE_SIZE = 32 * SCALE
 WHITE = '#F4F1EB'
 GREEN = '#2D9B7F'
 RED = '#FE5B6E'
 BLACK = '#2D2005'
-info_font = ('FixedSys', 6)
+INFO_FONT = ('FixedSys', 10 * SCALE)
 
 
 class View(object):
 
     def __init__(self, dungeon):
         self.manual_mode = False
+
         self.dungeon = dungeon
         self.root = Tk()
+        self.root.config(background=GREEN)
         self.root.wm_title('Lost Dungeon')
-        self.root.bind('<Left>', self.left_key)
-        self.root.bind('<Right>', self.right_key)
-        self.root.bind('<Up>', self.up_key)
-        self.root.bind('<Down>', self.down_key)
-
-        self.root.bind('d', self.shoot_left_key)
-        self.root.bind('g', self.shoot_right_key)
-        self.root.bind('r', self.shoot_up_key)
-        self.root.bind('f', self.shoot_down_key)
+        if MANUAL_MODE:
+            self.root.bind('<Left>', self.left_key)
+            self.root.bind('<Right>', self.right_key)
+            self.root.bind('<Up>', self.up_key)
+            self.root.bind('<Down>', self.down_key)
+            self.root.bind('d', self.shoot_left_key)
+            self.root.bind('g', self.shoot_right_key)
+            self.root.bind('r', self.shoot_up_key)
+            self.root.bind('f', self.shoot_down_key)
 
         self.dimension = self.dungeon.dimension
         size = self.dimension * TILE_SIZE
@@ -33,9 +40,10 @@ class View(object):
         self.ui = Frame(self.root, background=GREEN)
         self.ui.pack(fill=BOTH)
         self.next = PhotoImage(file='sprites/next.gif')
+        self.next = self.next.zoom(SCALE)
         self.next_button = Button(self.ui, image=self.next, command=self.next_step, bd=0, highlightthickness=0)
         self.next_button.grid(row=0, column=0)
-        self.info = Label(self.ui, text='Score:', padx=10, bg=GREEN, font=info_font)
+        self.info = Label(self.ui, text='', padx=1 * SCALE, pady=0, bg=GREEN, font=INFO_FONT, justify=LEFT)
         self.info.grid(row=0, column=1, columnspan=2)
 
         # Dungeon
@@ -47,7 +55,7 @@ class View(object):
         self.load_sprites()
 
     def render(self):
-        info_text = 'Score: {0}'.format(self.dungeon.agent.score)
+        info_text = 'Score: {0}\n{1}'.format(self.dungeon.agent.score, self.dungeon.agent.status_message)
         self.info.config(text=info_text)
         self.dungeon_canvas.delete('all')
 
@@ -63,7 +71,7 @@ class View(object):
                     explored = 1
                 else:
                     explored = 0
-                    if self.manual_mode:
+                    if FOG_MODE:
                         if not self.dungeon.board[x][y].type == WALL:
                             self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                              image=self.sprite[FOG][0],
@@ -81,20 +89,20 @@ class View(object):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
 
-        if not self.manual_mode:
+        if INFO_MODE:
             for cell in self.dungeon.agent.frontier:
                 pm = cell.monster_probability
                 pt = cell.trap_probability
                 pc = 1 - (cell.monster_probability + cell.trap_probability)
-                cell_info = '??'
+                cell_info = '???'
                 if pm >= 1.0:
-                    cell_info = 'MO'
+                    cell_info = 'MON'
                 if pt >= 1.0:
-                    cell_info = 'TR'
+                    cell_info = 'TRA'
                 if pc >= 1.0:
-                    cell_info = 'OK'
-                self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 8, cell.y * TILE_SIZE + TILE_SIZE / 2,
-                                                text=cell_info, font=info_font, fill=RED, anchor=W)
+                    cell_info = 'OK!'
+                self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 4 * SCALE, cell.y * TILE_SIZE + TILE_SIZE / 2,
+                                                text=cell_info, font=INFO_FONT, fill=RED, anchor=W)
 
     def next_step(self):
         self.dungeon.new_dungeon()
@@ -153,3 +161,7 @@ class View(object):
         self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.gif')
         self.sprite[HERO][1] = PhotoImage(file='sprites/hero.gif')
         self.sprite[FOG][0] = PhotoImage(file='sprites/fog.gif')
+
+        for sprite in self.sprite:
+            sprite[0] = sprite[0].zoom(SCALE)
+            sprite[1] = sprite[1].zoom(SCALE)
