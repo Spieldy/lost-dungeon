@@ -1,6 +1,6 @@
 from Entity import *
+from Cell import *
 from Dijkstra import *
-UNKNOWN = -1
 
 
 class Agent(object):
@@ -18,10 +18,10 @@ class Agent(object):
         self.status_message = 'Welcome!'
 
     def update(self):
-        # self.move()
         self.goto(self.target_cell)
         self.update_knowledge()
         self.update_probabilities()
+        dijkstra(self)
         cell_type = self.dungeon.board[self.x][self.y].type
         if cell_type == TRAP or cell_type == MONSTER:
             self.respawn()
@@ -31,15 +31,14 @@ class Agent(object):
             self.dungeon.reset(self.dungeon.dimension + 1)
         self.take_decision()
 
-    def move(self):
-        if self.x < self.target_cell.x:
-            self.move_right()
-        elif self.x > self.target_cell.x:
-            self.move_left()
-        elif self.y < self.target_cell.y:
-            self.move_down()
-        else:
-            self.move_up()
+    def observe(self):
+        pass
+
+    def think(self):
+        pass
+
+    def act(self):
+        pass
 
     def take_decision(self):
         if self.has_clear():
@@ -52,13 +51,12 @@ class Agent(object):
         return False
 
     def find_closest_clear(self):
-        closest_distance = 999999
+        closest_distance = INFINITY
         for cell in self.frontier:
             if cell.clear_probability >= 1.0:
-                distance = abs(cell.x - self.x) + abs(cell.y - self.y)
-                if distance < closest_distance:
+                if cell.distance < closest_distance:
                     self.target_cell = cell
-                    closest_distance = distance
+                    closest_distance = cell.distance
 
     def update_probabilities(self):
         for cell in self.frontier:
@@ -100,13 +98,13 @@ class Agent(object):
             if current_cell.type != MONSTER and current_cell.type != TRAP:
                 if (adj_cell.type == UNKNOWN) and (adj_cell not in self.frontier):
                     self.frontier.append(adj_cell)
-                if current_cell.subtype == EMPTY:
-                    adj_cell.set_monster_probability(0)
 
     def reset_knowledge(self):
         self.cell = [[Cell(x, y) for y in range(self.dungeon.dimension)] for x in range(self.dungeon.dimension)]
         self.frontier.clear()
         self.update_knowledge()
+        self.update_probabilities()
+        dijkstra(self)
         self.take_decision()
 
     def adjacent_cells(self, x, y):
@@ -129,9 +127,7 @@ class Agent(object):
 
     # MOVE functions
     def goto(self, cell):
-        dijkstra(self)
         path = get_path(cell)
-        print('{0},{1}'.format(path[0].x, path[0].y))
         dx = path[0].x - self.x
         dy = path[0].y - self.y
 
@@ -188,26 +184,3 @@ class Agent(object):
         if self.dungeon.board[self.x][self.y - 1].type == MONSTER:
             self.dungeon.board[self.x][self.y - 1].type = DEADMONSTER
         self.status_message = 'Shot upward'
-
-
-class Cell(object):
-
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.type = UNKNOWN
-        self.subtype = UNKNOWN
-        self.monster_probability = 0.0
-        self.trap_probability = 0.0
-        self.clear_probability = 0.0
-        # Used for dijkstra
-        self.distance = 999999
-        self.previous = None
-
-    def set_monster_probability(self, p):
-        self.monster_probability = p
-        self.clear_probability = 1.0 - (self.monster_probability + self.trap_probability)
-
-    def set_trap_probability(self, p):
-        self.trap_probability = p
-        self.clear_probability = 1.0 - (self.monster_probability + self.trap_probability)
