@@ -3,7 +3,7 @@ from Agent import *
 from random import randint
 
 # Global variables defining generation probabilities
-INSERT_PROBABILITY = 5
+INSERT_PROBABILITY = 2
 
 
 class Dungeon(object):

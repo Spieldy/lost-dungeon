@@ -1,10 +1,10 @@
 from Entity import *
 from tkinter import *
 
-SCALE = 3
-MANUAL_MODE = True
+SCALE = 1
+MANUAL_MODE = False
 FOG_MODE = False
-INFO_MODE = False
+INFO_MODE = True
 
 TILE_SIZE = 32 * SCALE
 WHITE = '#F4F1EB'
@@ -41,9 +41,9 @@ class View(object):
         self.ui.pack(fill=BOTH)
         self.next = PhotoImage(file='sprites/next.gif')
         self.next = self.next.zoom(SCALE)
-        self.next_button = Button(self.ui, image=self.next, command=self.next_step, bd=0, highlightthickness=0)
+        self.next_button = Button(self.ui, image=self.next, command=self.next_step_button, bd=0, highlightthickness=0)
         self.next_button.grid(row=0, column=0)
-        self.info = Label(self.ui, text='', padx=1 * SCALE, pady=0, bg=GREEN, font=INFO_FONT, justify=LEFT)
+        self.info = Label(self.ui, text='', padx=1 * SCALE, pady=0, bg=GREEN, font=INFO_FONT, fg=BLACK, justify=LEFT)
         self.info.grid(row=0, column=1, columnspan=2)
 
         # Dungeon
@@ -53,6 +53,8 @@ class View(object):
         # Contains all the sprites, with second dimension containing explored version of the sprite
         self.sprite = [[PhotoImage() for x in range(2)] for y in range(ENTITY_COUNT)]
         self.load_sprites()
+
+        self.root.bind('<space>', self.next_step)
 
     def render(self):
         info_text = 'Score: {0}\n{1}'.format(self.dungeon.agent.score, self.dungeon.agent.status_message)
@@ -93,8 +95,10 @@ class View(object):
             for cell in self.dungeon.agent.frontier:
                 pm = cell.monster_probability
                 pt = cell.trap_probability
-                pc = 1 - (cell.monster_probability + cell.trap_probability)
-                cell_info = '???'
+                pc = cell.clear_probability  # 1 - (cell.monster_probability + cell.trap_probability)
+                cell_info = '{0:.1f}'.format(pt + pm)
+                if pm == 0 and pt == 0 and pc == 0:
+                    cell_info = '???'
                 if pm >= 1.0:
                     cell_info = 'MON'
                 if pt >= 1.0:
@@ -103,10 +107,15 @@ class View(object):
                     cell_info = 'OK!'
                 self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 4 * SCALE, cell.y * TILE_SIZE + TILE_SIZE / 2,
                                                 text=cell_info, font=INFO_FONT, fill=RED, anchor=W)
+            self.dungeon_canvas.create_image(self.dungeon.agent.target_cell.x * TILE_SIZE,
+                                             self.dungeon.agent.target_cell.y * TILE_SIZE, image=self.sprite[TARGET][0], anchor=NW)
 
-    def next_step(self):
-        self.dungeon.new_dungeon()
+    def next_step_button(self):
+        self.dungeon.agent.update()
         self.render()
+
+    def next_step(self, event):
+        self.next_step_button()
 
     def left_key(self, event):
         self.dungeon.agent.move_left()
@@ -161,6 +170,7 @@ class View(object):
         self.sprite[DEADMONSTER][0] = PhotoImage(file='sprites/monsterdead-un.gif')
         self.sprite[HERO][1] = PhotoImage(file='sprites/hero.gif')
         self.sprite[FOG][0] = PhotoImage(file='sprites/fog.gif')
+        self.sprite[TARGET][0] = PhotoImage(file='sprites/target.gif')
 
         for sprite in self.sprite:
             sprite[0] = sprite[0].zoom(SCALE)
