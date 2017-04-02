@@ -18,37 +18,76 @@ class Agent(object):
         self.status_message = 'Welcome!'
 
     def update(self):
-        self.goto(self.target_cell)
-        self.update_knowledge()
-        self.update_probabilities()
-        dijkstra(self)
-        cell_type = self.dungeon.board[self.x][self.y].type
-        if cell_type == TRAP or cell_type == MONSTER:
+        self.act()
+        self.observe()
+        self.think()
+
+    # Updates what the agent has explored and the list of frontier cells, and undergos current cell effect (death, exit)
+    def observe(self):
+        current_cell = self.cell[self.x][self.y]
+        current_cell.type = self.dungeon.board[self.x][self.y].type
+        current_cell.subtype = self.dungeon.board[self.x][self.y].subtype  # Current cell is now explored
+
+        if current_cell in self.frontier:
+            self.frontier.remove(current_cell)
+
+        for adj_cell in self.adjacent_cells(self.x, self.y):
+            if self.dungeon.board[adj_cell.x][adj_cell.y].type == WALL:
+                self.cell[adj_cell.x][adj_cell.y].type = WALL
+                self.cell[adj_cell.x][adj_cell.y].type = EMPTY
+            if current_cell.type != MONSTER and current_cell.type != TRAP:
+                if (adj_cell.type == UNKNOWN) and (adj_cell not in self.frontier):
+                    self.frontier.append(adj_cell)
+
+        if current_cell.type == TRAP or current_cell.type == MONSTER:
             self.respawn()
-        if cell_type == EXIT:
+        if current_cell.type == EXIT:
             self.status_message = 'Exit found!'.format((self.dungeon.dimension - 2) * 10)
             self.score += (self.dungeon.dimension - 2) * 10
             self.dungeon.reset(self.dungeon.dimension + 1)
+
+    # Updates frontier cell probabilities, calculates known cells distance from current position,
+    # and uses logic to find the target cell
+    def think(self):
+        self.update_probabilities()
+        dijkstra(self)
         self.take_decision()
 
-    def observe(self):
-        pass
-
-    def think(self):
-        pass
-
+    # Acts on the environment, ie, either shoot or move
     def act(self):
-        pass
+        if self.frontier:
+            self.goto(self.target_cell)
 
     def take_decision(self):
         if self.has_clear():
             self.find_closest_clear()
+        elif self.has_monster():
+            self.find_closest_monster()
+        else:
+            self.find_lowest_trap()
+
+        if not self.frontier:
+            self.status_message = 'Stuck! Game over'
 
     def has_clear(self):
         for cell in self.frontier:
             if cell.clear_probability >= 1.0:
                 return True
         return False
+
+    def has_monster(self):
+        for cell in self.frontier:
+            if cell.monster_probability > 0.0 and cell.trap_probability <= 0.0:
+                return True
+        return False
+
+    def find_closest_monster(self):
+        closest_distance = INFINITY
+        for cell in self.frontier:
+            if cell.monster_probability > 0.0 and cell.trap_probability <= 0.0:
+                if cell.distance < closest_distance:
+                    self.target_cell = cell
+                    closest_distance = cell.distance
 
     def find_closest_clear(self):
         closest_distance = INFINITY
@@ -57,6 +96,18 @@ class Agent(object):
                 if cell.distance < closest_distance:
                     self.target_cell = cell
                     closest_distance = cell.distance
+
+    def find_lowest_trap(self):
+        lowest_probability = 99.9
+        closest_distance = INFINITY
+        for cell in self.frontier:
+            if cell.trap_probability < lowest_probability:
+                self.target_cell = cell
+                lowest_probability = cell.trap_probability
+                closest_distance = cell.distance
+            if cell.trap_probability == lowest_probability and cell.distance < closest_distance:
+                self.target_cell = cell
+                closest_distance = cell.distance
 
     def update_probabilities(self):
         for cell in self.frontier:
@@ -81,31 +132,16 @@ class Agent(object):
 
             cell.set_monster_probability(bones_count * 0.2)
             cell.set_trap_probability(trash_count * 0.2)
+
+            if cell.shot_down:
+                cell.set_monster_probability(0)
         # End for frontier cell
-
-    def update_knowledge(self):
-        current_cell = self.cell[self.x][self.y]
-        current_cell.type = self.dungeon.board[self.x][self.y].type
-        current_cell.subtype = self.dungeon.board[self.x][self.y].subtype  # Current cell is now explored
-
-        if current_cell in self.frontier:
-            self.frontier.remove(current_cell)
-
-        for adj_cell in self.adjacent_cells(self.x, self.y):
-            if self.dungeon.board[adj_cell.x][adj_cell.y].type == WALL:
-                self.cell[adj_cell.x][adj_cell.y].type = WALL
-                self.cell[adj_cell.x][adj_cell.y].type = EMPTY
-            if current_cell.type != MONSTER and current_cell.type != TRAP:
-                if (adj_cell.type == UNKNOWN) and (adj_cell not in self.frontier):
-                    self.frontier.append(adj_cell)
 
     def reset_knowledge(self):
         self.cell = [[Cell(x, y) for y in range(self.dungeon.dimension)] for x in range(self.dungeon.dimension)]
         self.frontier.clear()
-        self.update_knowledge()
-        self.update_probabilities()
-        dijkstra(self)
-        self.take_decision()
+        self.observe()
+        self.think()
 
     def adjacent_cells(self, x, y):
         adjacent_cells = list()
@@ -130,57 +166,78 @@ class Agent(object):
         path = get_path(cell)
         dx = path[0].x - self.x
         dy = path[0].y - self.y
+        monster = path[0].monster_probability > 0 or path[0].type == MONSTER
 
         if dx < 0:
-            self.move_left()
+            if monster:
+                self.shoot_left()
+            else:
+                self.move_left()
         elif dx > 0:
-            self.move_right()
+            if monster:
+                self.shoot_right()
+            else:
+                self.move_right()
         elif dy < 0:
-            self.move_up()
+            if monster:
+                self.shoot_up()
+            else:
+                self.move_up()
         elif dy > 0:
-            self.move_down()
+            if monster:
+                self.shoot_down()
+            else:
+                self.move_down()
 
     def move_right(self):
         if self.dungeon.board[self.x + 1][self.y].type != WALL:
             self.x += 1
             self.score -= 1
+            self.status_message = 'Move right'
 
     def move_left(self):
         if self.dungeon.board[self.x - 1][self.y].type != WALL:
             self.x -= 1
             self.score -= 1
+            self.status_message = 'Move left'
 
     def move_down(self):
         if self.dungeon.board[self.x][self.y + 1].type != WALL:
             self.y += 1
             self.score -= 1
+            self.status_message = 'Move down'
 
     def move_up(self):
         if self.dungeon.board[self.x][self.y - 1].type != WALL:
             self.y -= 1
             self.score -= 1
+            self.status_message = 'Move up'
 
     # SHOOT functions
     def shoot_right(self):
         self.score -= 10
         if self.dungeon.board[self.x + 1][self.y].type == MONSTER:
             self.dungeon.board[self.x + 1][self.y].type = DEADMONSTER
+        self.cell[self.x + 1][self.y].shot_down = True
         self.status_message = 'Shot rightward'
 
     def shoot_left(self):
         self.score -= 10
         if self.dungeon.board[self.x - 1][self.y].type == MONSTER:
             self.dungeon.board[self.x - 1][self.y].type = DEADMONSTER
+        self.cell[self.x - 1][self.y].shot_down = True
         self.status_message = 'Shot leftward'
 
     def shoot_down(self):
         self.score -= 10
         if self.dungeon.board[self.x][self.y + 1].type == MONSTER:
             self.dungeon.board[self.x][self.y + 1].type = DEADMONSTER
+        self.cell[self.x][self.y + 1].shot_down = True
         self.status_message = 'Shot downward'
 
     def shoot_up(self):
         self.score -= 10
         if self.dungeon.board[self.x][self.y - 1].type == MONSTER:
             self.dungeon.board[self.x][self.y - 1].type = DEADMONSTER
+        self.cell[self.x][self.y - 1].shot_down = True
         self.status_message = 'Shot upward'

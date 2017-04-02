@@ -3,7 +3,7 @@ from Agent import *
 from random import randint
 
 # Global variables defining generation probabilities
-INSERT_PROBABILITY = 2
+INSERT_PROBABILITY = 8
 
 
 class Dungeon(object):
@@ -43,16 +43,6 @@ class Dungeon(object):
     def populate(self):
         for x in range(1, self.dimension-1):
             for y in range(1, self.dimension-1):
-                # TRAP
-                if self.board[x][y].type == EMPTY and not (self.agent.x == x and self.agent.y == y):
-                    event_occurred = randint(0, 99)
-                    if event_occurred < INSERT_PROBABILITY:
-                        self.board[x][y].type = TRAP
-                        # Generate TRASH around the TRAP
-                        self.board[x - 1][y].add_trash()
-                        self.board[x + 1][y].add_trash()
-                        self.board[x][y - 1].add_trash()
-                        self.board[x][y + 1].add_trash()
 
                 # MONSTER
                 if self.board[x][y].type == EMPTY and not (self.agent.x == x and self.agent.y == y):
@@ -64,6 +54,17 @@ class Dungeon(object):
                         self.board[x + 1][y].add_bones()
                         self.board[x][y - 1].add_bones()
                         self.board[x][y + 1].add_bones()
+
+                # TRAP
+                if self.board[x][y].type == EMPTY and not (self.agent.x == x and self.agent.y == y):
+                    event_occurred = randint(0, 99)
+                    if event_occurred < INSERT_PROBABILITY:
+                        self.board[x][y].type = TRAP
+                        # Generate TRASH around the TRAP
+                        self.board[x - 1][y].add_trash()
+                        self.board[x + 1][y].add_trash()
+                        self.board[x][y - 1].add_trash()
+                        self.board[x][y + 1].add_trash()
 
     def new_dungeon(self):
         self.dimension += 1

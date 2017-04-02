@@ -96,7 +96,7 @@ class View(object):
                 pm = cell.monster_probability
                 pt = cell.trap_probability
                 pc = cell.clear_probability  # 1 - (cell.monster_probability + cell.trap_probability)
-                cell_info = '{0:.1f}'.format(pt + pm)
+                cell_info = '{0:.1f}\n{1:.1f}'.format(pm, pt)
                 if pm == 0 and pt == 0 and pc == 0:
                     cell_info = '???'
                 if pm >= 1.0:
@@ -119,34 +119,50 @@ class View(object):
 
     def left_key(self, event):
         self.dungeon.agent.move_left()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def right_key(self, event):
         self.dungeon.agent.move_right()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def up_key(self, event):
         self.dungeon.agent.move_up()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def down_key(self, event):
         self.dungeon.agent.move_down()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def shoot_left_key(self, event):
         self.dungeon.agent.shoot_left()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def shoot_right_key(self, event):
         self.dungeon.agent.shoot_right()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def shoot_up_key(self, event):
         self.dungeon.agent.shoot_up()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def shoot_down_key(self, event):
         self.dungeon.agent.shoot_down()
+        self.dungeon.agent.observe()
+        self.dungeon.agent.think()
         self.render()
 
     def load_sprites(self):

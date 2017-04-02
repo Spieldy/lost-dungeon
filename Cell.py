@@ -11,6 +11,7 @@ class Cell(object):
         self.monster_probability = 0.0
         self.trap_probability = 0.0
         self.clear_probability = 0.0
+        self.shot_down = False
         # Used for dijkstra
         self.distance = 999999
         self.previous = None
