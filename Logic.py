@@ -129,9 +129,12 @@ def get_best_trap(frontier):
 # Finds the best target cell for agent using all functions above.
 def get_target(agent):
     if exist_safe(agent.frontier):
+        agent.status_message = 'Target: safe'
         target = get_closest_safe(agent.frontier)
     elif exist_worthy_monster(agent.frontier, agent):
+        agent.status_message = 'Target: monster'
         target = get_closest_monster(agent.frontier, agent)
     else:
+        agent.status_message = 'Target: trap'
         target = get_best_trap(agent.frontier)
     return target

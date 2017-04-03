@@ -2,8 +2,8 @@ from Entity import *
 from tkinter import *
 
 # Change these values to affect the interface
-# Pixel size
-SCALE = 1
+# Graphical size multiplier. Must be an integer.
+SCALE = 2
 # Allows moving the agent with arrow keys and shooting with RDFG
 MANUAL_MODE = True
 # Completely hides all unexplored cells
@@ -20,7 +20,7 @@ BLACK = '#2D2005'
 INFO_FONT = ('FixedSys', 10 * SCALE)
 
 
-# Contains the interface logic
+# Contains the graphical interface logic
 class View(object):
 
     def __init__(self, dungeon):
@@ -107,20 +107,29 @@ class View(object):
         # Display stats and target cell
         if INFO_MODE:
             for cell in self.dungeon.agent.frontier:
-                pm = cell.monster_probability
-                pt = cell.trap_probability
-                pc = cell.clear_probability  # 1 - (cell.monster_probability + cell.trap_probability)
-                cell_info = '{0:.1f}\n{1:.1f}'.format(pm, pt)
+                pm = cell.monster_probability * 100
+                pt = cell.trap_probability * 100
+                pc = cell.clear_probability * 100 # 1 - (cell.monster_probability + cell.trap_probability)
+                cell_info = ''
+                if pm > 0:
+                    cell_info += '{0:.0f}\n'.format(pm)
+                else:
+                    cell_info += ' -\n'
+                if pt > 0:
+                    cell_info += '{0:.0f}'.format(pt)
+                else:
+                    cell_info += ' -'
+                # cell_info = 'M{0:.0f}\nT{1:.0f}'.format(pm, pt)
                 if pm == 0 and pt == 0 and pc == 0:
                     cell_info = '???'
-                if pm >= 1.0:
+                if pm >= 100:
                     cell_info = 'MON'
-                if pt >= 1.0:
+                if pt >= 100:
                     cell_info = 'TRA'
-                if pc >= 1.0:
-                    cell_info = 'OK!'
+                if pc >= 100:
+                    cell_info = 'OK'
                 self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 4 * SCALE, cell.y * TILE_SIZE + TILE_SIZE / 2,
-                                                text=cell_info, font=INFO_FONT, fill=RED, anchor=W)
+                                                text=cell_info, font=INFO_FONT, fill=WHITE, anchor=W)
             if self.dungeon.agent.target_cell:
                 self.dungeon_canvas.create_image(self.dungeon.agent.target_cell.x * TILE_SIZE,
                                                  self.dungeon.agent.target_cell.y * TILE_SIZE,

@@ -122,8 +122,6 @@ class Agent(object):
             cell.set_trap_probability(trash_count * 0.2)
             if cell.shot_down:
                 cell.set_monster_probability(0)
-            if cell.monster_probability == 0 and self.dungeon.board[cell.x][cell.y].type == MONSTER:
-                print("OOPS")
         # End for frontier cell
 
     # Resets mental state when a new dungeon is generated
