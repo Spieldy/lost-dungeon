@@ -2,9 +2,9 @@ from Entity import *
 from Agent import *
 from random import randint
 
-# Global variables defining generation probabilities
-MONSTER_PROBABILITY = 30
-TRAP_PROBABILITY = 30
+# Change these values to affect generation probabilities (in %)
+MONSTER_PROBABILITY = 5
+TRAP_PROBABILITY = 5
 
 
 # Contains the actual static dungeon state and generation logic.

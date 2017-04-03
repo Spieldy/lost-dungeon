@@ -1,5 +1,4 @@
-from random import randint
-
+# All entity types and displayable tiles.
 ENTITY_COUNT = 12
 EMPTY, WALL, EXIT, MONSTER, BONES, TRAP, TRASH, BONES_TRASH, DEADMONSTER, HERO, FOG, TARGET = range(ENTITY_COUNT)
 
@@ -8,7 +7,9 @@ EMPTY, WALL, EXIT, MONSTER, BONES, TRAP, TRASH, BONES_TRASH, DEADMONSTER, HERO, 
 class Entity(object):
 
     def __init__(self):
+        # type is either EMPTY, WALL, EXIT, MONSTER, TRAP (ie features that interact directly with the agent)
         self.type = EMPTY
+        # type is either EMPTY, BONES, TRASH, or BONES_TRASH (ie features that interact with probabilities)
         self.subtype = EMPTY
         pass
 

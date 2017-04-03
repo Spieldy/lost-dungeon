@@ -11,6 +11,7 @@ FOG_MODE = False
 # Displays statistics on frontier cells, and highlights target cell
 INFO_MODE = True
 
+
 TILE_SIZE = 32 * SCALE
 WHITE = '#F4F1EB'
 GREEN = '#2D9B7F'
@@ -85,14 +86,14 @@ class View(object):
                     explored = 1
                 else:
                     explored = 0
-                    if FOG_MODE:
+                    if FOG_MODE:  # Display fog instead of tile
                         if not self.dungeon.board[x][y].type == WALL:
                             self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                              image=self.sprite[FOG][0],
                                                              anchor='nw')
                             continue
-
-                if not self.dungeon.board[x][y].type == EMPTY:
+                # Display the cell type
+                if not self.dungeon.board[x][y].type == EMPTY and not self.dungeon.board[x][y].type == DEADMONSTER:
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[self.dungeon.board[x][y].type][explored], anchor='nw')
                 else:

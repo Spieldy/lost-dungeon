@@ -5,13 +5,17 @@ UNKNOWN = -1
 class Cell(object):
 
     def __init__(self, x, y):
+        # Cell position
         self.x = x
         self.y = y
+        # When the cell has been explored, these are the same contained in the dungeon entity (see Entity.py)
         self.type = UNKNOWN
         self.subtype = UNKNOWN
+        # Probabilities for frontier cells
         self.monster_probability = 0.0
         self.trap_probability = 0.0
         self.clear_probability = 0.0
+        # has the cell been shot by the agent?
         self.shot_down = False
         # Used for dijkstra
         self.distance = 999999

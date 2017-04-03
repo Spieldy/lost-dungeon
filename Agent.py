@@ -7,17 +7,26 @@ from Logic import *
 class Agent(object):
 
     def __init__(self, x, y, dungeon):
+        # Position
         self.x = x
         self.y = y
+        # Spawn position
         self.respawn_x = None
         self.respawn_y = None
+        # Dungeon
         self.dungeon = dungeon
+        # Mental representation of the dungeon. Contains everything known and deduced.
         self.cell = [[Cell(x, y) for y in range(dungeon.dimension)] for x in range(dungeon.dimension)]
+        # Contains all cells at the edge of the explored area. Each of these cells contains probabilities on its content
         self.frontier = []
+        # The frontier cell the agent wants to visit next.
         self.target_cell = self.cell[0][0]
+        # This is absolutely useless
         self.score = (self.dungeon.dimension - 3) * 10
+        # To display info on the last movement.
         self.status_message = 'Welcome!'
 
+    # Main function called each step
     def update(self):
         self.act()
         self.observe()
@@ -26,105 +35,57 @@ class Agent(object):
     # Updates what the agent has explored and the list of frontier cells, and undergos current cell effect (death, exit)
     def observe(self):
         current_cell = self.cell[self.x][self.y]
-        current_cell.type = self.dungeon.board[self.x][self.y].type
-        current_cell.subtype = self.dungeon.board[self.x][self.y].subtype  # Current cell is now explored
+        # Change known data on the current_cell if it was unexplored
+        if current_cell.type == UNKNOWN:
+            current_cell.type = self.dungeon.board[self.x][self.y].type
+            current_cell.subtype = self.dungeon.board[self.x][self.y].subtype
+            current_cell.set_monster_probability(0)
+            current_cell.set_trap_probability(0)
+            # Current cell is now explored
 
+        # Update the frontier and consider adjacent walls explored
         if current_cell in self.frontier:
             self.frontier.remove(current_cell)
-
         for adj_cell in self.adjacent_cells(self.x, self.y):
             if self.dungeon.board[adj_cell.x][adj_cell.y].type == WALL:
                 self.cell[adj_cell.x][adj_cell.y].type = WALL
-                self.cell[adj_cell.x][adj_cell.y].type = EMPTY
+                self.cell[adj_cell.x][adj_cell.y].subtype = EMPTY
             if current_cell.type != MONSTER and current_cell.type != TRAP:
                 if (adj_cell.type == UNKNOWN) and (adj_cell not in self.frontier):
                     self.frontier.append(adj_cell)
 
+        # Change agent state if it stepped on a special tile (dead or exit)
         if current_cell.type == TRAP or current_cell.type == MONSTER:
             self.respawn()
         if current_cell.type == EXIT:
             self.status_message = 'Exit found!'.format((self.dungeon.dimension - 2) * 10)
             self.score += (self.dungeon.dimension - 2) * 10
             self.dungeon.reset(self.dungeon.dimension + 1)
+    # End observe()
 
     # Updates frontier cell probabilities, calculates known cells distance from current position,
     # and uses logic to find the target cell
     def think(self):
         self.update_probabilities()
         dijkstra(self)
-        self.take_decision()
+        self.target_cell = get_target(self)
+        if not self.target_cell:
+            self.status_message = 'Stuck! Game over'
 
     # Acts on the environment, ie, either shoot or move
     def act(self):
         if self.target_cell:
             self.goto(self.target_cell)
 
-    def take_decision(self):
-        if False:
-            if self.has_clear():
-                self.find_closest_clear()
-            elif self.has_monster():
-                self.find_closest_monster()
-            else:
-                self.find_lowest_trap()
-        self.target_cell = get_target(self)
-
-        if not self.target_cell:
-            self.status_message = 'Stuck! Game over'
-
-    def has_clear(self):
-        for cell in self.frontier:
-            if cell.clear_probability >= 1.0:
-                return True
-        return False
-
-    def has_monster(self):
-        for cell in self.frontier:
-            if cell.monster_probability > 0.0 and cell.trap_probability <= 0.0:
-                for adj in self.adjacent_cells(cell.x, cell.y):
-                    if adj.type == UNKNOWN:  # TODO should not go only if lone AND 100% monster
-                        return True
-        return False
-
-    def find_closest_monster(self):
-        closest_distance = INFINITY
-        for cell in self.frontier:
-            if cell.monster_probability > 0.0 and cell.trap_probability <= 0.0:
-                lone_cell = True
-                for adj in self.adjacent_cells(cell.x, cell.y):
-                    if adj.type == UNKNOWN:
-                        lone_cell = False
-                if cell.distance < closest_distance and not lone_cell:
-                    self.target_cell = cell
-                    closest_distance = cell.distance
-
-    def find_closest_clear(self):
-        closest_distance = INFINITY
-        for cell in self.frontier:
-            if cell.clear_probability >= 1.0:
-                if cell.distance < closest_distance:
-                    self.target_cell = cell
-                    closest_distance = cell.distance
-
-    def find_lowest_trap(self):
-        lowest_probability = 0.99
-        self.target_cell = None
-        closest_distance = INFINITY
-        for cell in self.frontier:
-            if cell.trap_probability < lowest_probability:
-                self.target_cell = cell
-                lowest_probability = cell.trap_probability
-                closest_distance = cell.distance
-            if cell.trap_probability == lowest_probability and cell.distance < closest_distance:
-                self.target_cell = cell
-                closest_distance = cell.distance
-
+    # Updates probabilities on the content of each cell based on heuristics.
     def update_probabilities(self):
         for cell in self.frontier:
             bones_count = 0
             trash_count = 0
             for adj_cell in self.adjacent_cells(cell.x, cell.y):
-                if adj_cell.subtype == EMPTY:  # Cell is 100% clear
+
+                # Check for 100% clear
+                if adj_cell.subtype == EMPTY:
                     cell.set_monster_probability(0.0)
                     cell.set_trap_probability(0.0)
                     bones_count = 0
@@ -140,10 +101,13 @@ class Agent(object):
                     if explored_count >= 3:
                         if adj_cell.subtype == BONES:
                             bones_count = 5
+                            trash_count = 0
                         elif adj_cell.subtype == TRASH:
                             trash_count = 5
+                            bones_count = 0
                         break
 
+                # Count surrounding features
                 if adj_cell.subtype == BONES:
                     bones_count += 1
                 elif adj_cell.subtype == TRASH:
@@ -153,21 +117,23 @@ class Agent(object):
                     bones_count += 1
             # End for adjacent cell
 
+            # Update probabilities
             cell.set_monster_probability(bones_count * 0.2)
             cell.set_trap_probability(trash_count * 0.2)
-
             if cell.shot_down:
                 cell.set_monster_probability(0)
             if cell.monster_probability == 0 and self.dungeon.board[cell.x][cell.y].type == MONSTER:
                 print("OOPS")
         # End for frontier cell
 
+    # Resets mental state when a new dungeon is generated
     def reset_knowledge(self):
         self.cell = [[Cell(x, y) for y in range(self.dungeon.dimension)] for x in range(self.dungeon.dimension)]
         self.frontier.clear()
         self.observe()
         self.think()
 
+    # Returns a list of all existing adjacent cells to specified position
     def adjacent_cells(self, x, y):
         adjacent_cells = list()
         if x + 1 < self.dungeon.dimension:
@@ -180,13 +146,14 @@ class Agent(object):
             adjacent_cells.append(self.cell[x][y - 1])
         return adjacent_cells
 
+    # When the agent dies
     def respawn(self):
         self.score -= (self.dungeon.dimension - 2) * 10
         self.x = self.respawn_x
         self.y = self.respawn_y
         self.status_message = 'You died.'.format((self.dungeon.dimension - 2) * 10)
 
-    # MOVE functions
+    # Processes the first move in the dijkstra path to target cell.
     def goto(self, cell):
         path = get_path(cell)
         dx = path[0].x - self.x
@@ -214,6 +181,7 @@ class Agent(object):
             else:
                 self.move_down()
 
+    # MOVE functions
     def move_right(self):
         if self.dungeon.board[self.x + 1][self.y].type != WALL:
             self.x += 1
