@@ -3,9 +3,11 @@ from Agent import *
 from random import randint
 
 # Global variables defining generation probabilities
-INSERT_PROBABILITY = 8
+MONSTER_PROBABILITY = 30
+TRAP_PROBABILITY = 30
 
 
+# Contains the actual static dungeon state and generation logic.
 class Dungeon(object):
     def __init__(self, dimension):
         self.dimension = dimension
@@ -13,6 +15,7 @@ class Dungeon(object):
         self.agent = Agent(1, 1, self)
         self.reset(dimension)
 
+    # Generates a new room with specified size
     def reset(self, dimension):
         self.dimension = dimension
         self.board = [[Entity(EMPTY, EMPTY) for x in range(dimension)] for y in range(dimension)]
@@ -40,6 +43,7 @@ class Dungeon(object):
         self.populate()
         self.agent.reset_knowledge()
 
+    # Places monsters and traps
     def populate(self):
         for x in range(1, self.dimension-1):
             for y in range(1, self.dimension-1):
@@ -47,7 +51,7 @@ class Dungeon(object):
                 # MONSTER
                 if self.board[x][y].type == EMPTY and not (self.agent.x == x and self.agent.y == y):
                     event_occurred = randint(0, 99)
-                    if event_occurred < INSERT_PROBABILITY:
+                    if event_occurred < MONSTER_PROBABILITY:
                         self.board[x][y].type = MONSTER
                         # Generate BONES around the MONSTER
                         self.board[x - 1][y].add_bones()
@@ -58,15 +62,10 @@ class Dungeon(object):
                 # TRAP
                 if self.board[x][y].type == EMPTY and not (self.agent.x == x and self.agent.y == y):
                     event_occurred = randint(0, 99)
-                    if event_occurred < INSERT_PROBABILITY:
+                    if event_occurred < TRAP_PROBABILITY:
                         self.board[x][y].type = TRAP
                         # Generate TRASH around the TRAP
                         self.board[x - 1][y].add_trash()
                         self.board[x + 1][y].add_trash()
                         self.board[x][y - 1].add_trash()
                         self.board[x][y + 1].add_trash()
-
-    def new_dungeon(self):
-        self.dimension += 1
-        self.reset(self.dimension)
-        pass

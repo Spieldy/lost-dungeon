@@ -1,6 +1,7 @@
 from Entity import *
 from Cell import *
 from Dijkstra import *
+from Logic import *
 
 
 class Agent(object):
@@ -55,18 +56,20 @@ class Agent(object):
 
     # Acts on the environment, ie, either shoot or move
     def act(self):
-        if self.frontier:
+        if self.target_cell:
             self.goto(self.target_cell)
 
     def take_decision(self):
-        if self.has_clear():
-            self.find_closest_clear()
-        elif self.has_monster():
-            self.find_closest_monster()
-        else:
-            self.find_lowest_trap()
+        if False:
+            if self.has_clear():
+                self.find_closest_clear()
+            elif self.has_monster():
+                self.find_closest_monster()
+            else:
+                self.find_lowest_trap()
+        self.target_cell = get_target(self)
 
-        if not self.frontier:
+        if not self.target_cell:
             self.status_message = 'Stuck! Game over'
 
     def has_clear(self):
@@ -78,14 +81,20 @@ class Agent(object):
     def has_monster(self):
         for cell in self.frontier:
             if cell.monster_probability > 0.0 and cell.trap_probability <= 0.0:
-                return True
+                for adj in self.adjacent_cells(cell.x, cell.y):
+                    if adj.type == UNKNOWN:  # TODO should not go only if lone AND 100% monster
+                        return True
         return False
 
     def find_closest_monster(self):
         closest_distance = INFINITY
         for cell in self.frontier:
             if cell.monster_probability > 0.0 and cell.trap_probability <= 0.0:
-                if cell.distance < closest_distance:
+                lone_cell = True
+                for adj in self.adjacent_cells(cell.x, cell.y):
+                    if adj.type == UNKNOWN:
+                        lone_cell = False
+                if cell.distance < closest_distance and not lone_cell:
                     self.target_cell = cell
                     closest_distance = cell.distance
 
@@ -98,7 +107,8 @@ class Agent(object):
                     closest_distance = cell.distance
 
     def find_lowest_trap(self):
-        lowest_probability = 99.9
+        lowest_probability = 0.99
+        self.target_cell = None
         closest_distance = INFINITY
         for cell in self.frontier:
             if cell.trap_probability < lowest_probability:
@@ -114,12 +124,25 @@ class Agent(object):
             bones_count = 0
             trash_count = 0
             for adj_cell in self.adjacent_cells(cell.x, cell.y):
-                if adj_cell.subtype == EMPTY:
+                if adj_cell.subtype == EMPTY:  # Cell is 100% clear
                     cell.set_monster_probability(0.0)
                     cell.set_trap_probability(0.0)
                     bones_count = 0
                     trash_count = 0
-                    break  # Cell is 100% clear
+                    break
+
+                # Check for 100% danger
+                if adj_cell.type != UNKNOWN:
+                    explored_count = 0
+                    for c in self.adjacent_cells(adj_cell.x, adj_cell.y):
+                        if c.type == EMPTY:
+                            explored_count += 1
+                    if explored_count >= 3:
+                        if adj_cell.subtype == BONES:
+                            bones_count = 5
+                        elif adj_cell.subtype == TRASH:
+                            trash_count = 5
+                        break
 
                 if adj_cell.subtype == BONES:
                     bones_count += 1
@@ -135,6 +158,8 @@ class Agent(object):
 
             if cell.shot_down:
                 cell.set_monster_probability(0)
+            if cell.monster_probability == 0 and self.dungeon.board[cell.x][cell.y].type == MONSTER:
+                print("OOPS")
         # End for frontier cell
 
     def reset_knowledge(self):

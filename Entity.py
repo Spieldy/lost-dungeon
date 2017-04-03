@@ -4,6 +4,7 @@ ENTITY_COUNT = 12
 EMPTY, WALL, EXIT, MONSTER, BONES, TRAP, TRASH, BONES_TRASH, DEADMONSTER, HERO, FOG, TARGET = range(ENTITY_COUNT)
 
 
+# Represents an actual cell for the dungeon. Not to be confused with Cell.
 class Entity(object):
 
     def __init__(self):

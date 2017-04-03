@@ -1,9 +1,14 @@
 from Entity import *
 from tkinter import *
 
+# Change these values to affect the interface
+# Pixel size
 SCALE = 1
-MANUAL_MODE = False
+# Allows moving the agent with arrow keys and shooting with RDFG
+MANUAL_MODE = True
+# Completely hides all unexplored cells
 FOG_MODE = False
+# Displays statistics on frontier cells, and highlights target cell
 INFO_MODE = True
 
 TILE_SIZE = 32 * SCALE
@@ -14,6 +19,7 @@ BLACK = '#2D2005'
 INFO_FONT = ('FixedSys', 10 * SCALE)
 
 
+# Contains the interface logic
 class View(object):
 
     def __init__(self, dungeon):
@@ -23,15 +29,6 @@ class View(object):
         self.root = Tk()
         self.root.config(background=GREEN)
         self.root.wm_title('Lost Dungeon')
-        if MANUAL_MODE:
-            self.root.bind('<Left>', self.left_key)
-            self.root.bind('<Right>', self.right_key)
-            self.root.bind('<Up>', self.up_key)
-            self.root.bind('<Down>', self.down_key)
-            self.root.bind('d', self.shoot_left_key)
-            self.root.bind('g', self.shoot_right_key)
-            self.root.bind('r', self.shoot_up_key)
-            self.root.bind('f', self.shoot_down_key)
 
         self.dimension = self.dungeon.dimension
         size = self.dimension * TILE_SIZE
@@ -54,19 +51,34 @@ class View(object):
         self.sprite = [[PhotoImage() for x in range(2)] for y in range(ENTITY_COUNT)]
         self.load_sprites()
 
+        if MANUAL_MODE:
+            # Key binds
+            self.root.bind('<Left>', self.left_key)
+            self.root.bind('<Right>', self.right_key)
+            self.root.bind('<Up>', self.up_key)
+            self.root.bind('<Down>', self.down_key)
+            self.root.bind('d', self.shoot_left_key)
+            self.root.bind('g', self.shoot_right_key)
+            self.root.bind('r', self.shoot_up_key)
+            self.root.bind('f', self.shoot_down_key)
         self.root.bind('<space>', self.next_step)
+
+        self.render()
+        self.root.mainloop()
 
     def render(self):
         info_text = 'Score: {0}\n{1}'.format(self.dungeon.agent.score, self.dungeon.agent.status_message)
         self.info.config(text=info_text)
         self.dungeon_canvas.delete('all')
 
-        if self.dimension != self.dungeon.dimension:  # Dungeon has been generated to a new size
+        # Dungeon has been generated to a new size
+        if self.dimension != self.dungeon.dimension:
             self.dimension = self.dungeon.dimension
             size = self.dimension * TILE_SIZE
             self.dungeon_canvas.config(width=size, height=size)
             self.dungeon_canvas.pack()
 
+        # Display each tile
         for y in range(self.dungeon.dimension):
             for x in range(self.dungeon.dimension):
                 if self.dungeon.agent.cell[x][y].type >= 0:
@@ -91,6 +103,7 @@ class View(object):
                     self.dungeon_canvas.create_image(x * TILE_SIZE, y * TILE_SIZE,
                                                      image=self.sprite[HERO][1], anchor='nw')
 
+        # Display stats and target cell
         if INFO_MODE:
             for cell in self.dungeon.agent.frontier:
                 pm = cell.monster_probability
@@ -107,9 +120,12 @@ class View(object):
                     cell_info = 'OK!'
                 self.dungeon_canvas.create_text(cell.x * TILE_SIZE + 4 * SCALE, cell.y * TILE_SIZE + TILE_SIZE / 2,
                                                 text=cell_info, font=INFO_FONT, fill=RED, anchor=W)
-            self.dungeon_canvas.create_image(self.dungeon.agent.target_cell.x * TILE_SIZE,
-                                             self.dungeon.agent.target_cell.y * TILE_SIZE, image=self.sprite[TARGET][0], anchor=NW)
+            if self.dungeon.agent.target_cell:
+                self.dungeon_canvas.create_image(self.dungeon.agent.target_cell.x * TILE_SIZE,
+                                                 self.dungeon.agent.target_cell.y * TILE_SIZE,
+                                                 image=self.sprite[TARGET][0], anchor=NW)
 
+    # Key bind functions
     def next_step_button(self):
         self.dungeon.agent.update()
         self.render()

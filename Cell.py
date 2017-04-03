@@ -1,6 +1,7 @@
 UNKNOWN = -1
 
 
+# Represents a cell for the mental model of the agent. Similar to Entity but with additional information
 class Cell(object):
 
     def __init__(self, x, y):
